@@ -1,2 +1,5 @@
-# pweb-payload-cms-p12-2023
-Praktikum Modul 3 Payload CMS Pemrograman Web 2023 Kelompok P12
+# PRAKTIKUM MODUL 3 PAYLOAD CMS PEMROGRAMMAN WEB - KELOMPOK P12
+*Anggota Kelompok:*
+1. Azzahra Sekar Rahmadina - 5027221035
+2. Muhammad Rifqi Oktaviansyah - 5027221067
+3. Sighra Attariq Sumere Jati - 5027221068
