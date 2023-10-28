@@ -8,8 +8,8 @@ const Todo = {
         update : () => true,
         delete : () => true,
       },
-    admin: {
-        useAsTitle: "Todo"
+      admin: {
+        useAsTitle: "Tugas"
     },
     hooks: {
         afterOperation: [
@@ -47,13 +47,14 @@ const Todo = {
     },
     fields : [
         {
-            name: 'Tugas', 
-            type: 'text', 
-            required: true, 
+            name: "Tugas", 
+            type: "text", 
+            required: true,
+            label: "Nama Tugas" 
         },
         {
-            name: 'Deadline',
-            type: 'date',
+            name: "Deadline",
+            type: "date",
             required: true,
             admin: {
                 date: {
