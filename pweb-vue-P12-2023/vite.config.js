@@ -13,5 +13,10 @@ export default defineConfig({
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url))
     }
-  }
+  },
+    // Opsi lain dari konfigurasi Anda
+    optimizeDeps: {
+      // Daftar modul eksternal yang harus diabaikan oleh Vite/Rollup
+      external: ['axios'],
+    },
 })
