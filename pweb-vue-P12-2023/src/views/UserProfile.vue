@@ -1,17 +1,9 @@
 <!-- UserProfile.vue -->
 <template>
     <div class="todo-app">
-      <h1 class="py-2 px-0">Todo App - {{ $route.params.username }}</h1>
+      <h1 class="py-2 px-0">Todo App </h1>
       <!-- Daftar nama pengguna horizontal dipisahkan dengan simbol "|" -->
-      <div class="user-list">
-        <router-link
-          v-for="username in usernames"
-          :to="'/about/' + username"
-          :key="username"
-        >
-          {{ username }}
-        </router-link>
-      </div>
+
     <!-- Input untuk todo baru -->
     <input
       class="todo-input w-80"
@@ -19,6 +11,14 @@
       @keydown.enter.prevent="addTodo"
       placeholder="Add Tasks"
     />
+
+    <!-- Input untuk memilih kategori -->
+    <select class="category-select" v-model="selectedCategory" @change="onCategoryChange">
+      <option value="" disabled selected>Select Category</option>
+      <option v-for="category in categories" :key="category.id" :value="category.name">
+                {{ category.name }}
+      </option>
+    </select>
 
     <!-- Input untuk memasukkan tenggat waktu -->
     <input
@@ -68,12 +68,15 @@
 </template>
 
 <script>
-
+import todoService from '../views/todoService.js'
 export default {
   data() {
     return {
       newTodo: "",
+      newTodoDeadline: "",
       todos: [],
+      categories: [],
+      selectedCategory: "",
       category: "all",
       showEditModal: false,
       editedTodoId: null,
@@ -92,40 +95,50 @@ export default {
     },
   },
   methods: {
-// Metode untuk memuat tugas berdasarkan nama pengguna
-loadTodosFromLocalStorage() {
-  const savedTodos = localStorage.getItem(`todos-${this.$route.params.username}`);
-  if (savedTodos) {
-    this.todos = JSON.parse(savedTodos);
-  }
-},
+    async loadTodos() {
+      this.todos = await todoService.getTodoList();
+    },
 
-// Metode untuk menyimpan tugas ke local storage setiap kali ada perubahan
-saveTodosToLocalStorage() {
-  localStorage.setItem(`todos-${this.$route.params.username}`, JSON.stringify(this.todos));
-}
-,
+    async loadCategories() {
+      this.categories = await todoService.getCategoryList();
+    },
 
-    // Metode untuk menambahkan tugas baru
-    addTodo() {
-      if (this.newTodo.trim() !== "") {
-        this.todos.push({
-          id: Date.now(),
-          text: this.newTodo,
-          completed: false,
-          deadline: this.newTodoDeadline,
-        });
-        this.newTodo = "";
-        this.newTodoDeadline = "";
-        this.saveTodosToLocalStorage(); // Simpan tugas setelah menambahkan
+    onCategoryChange() {
+      this.filterByCategory();
+    },
+
+    filterByCategory() {
+    // Menyaring tugas berdasarkan kategori yang dipilih
+      if (this.selectedCategory === "") {
+        this.todos = []; // Reset daftar tugas jika kategori tidak dipilih
+      } else {
+        this.todos = this.todos.filter(todo => todo.category === this.selectedCategory);
       }
     },
+
+    // Metode untuk menambahkan tugas baru
+    async addTodo() {
+      if (this.newTodo.trim() !== "") {
+        await todoService.addTask({ 
+        text: this.newTodo, 
+        completed: false, 
+        category: this.selectedCategory,
+        deadline: this.newTodoDeadline
+         }); 
+        this.newTodo = ""; 
+        this.newTodoDeadline = "";
+        await this.loadTodos(); 
+  }
+},
 
     formatDeadline(deadline) {
     if (!deadline) {
       return ""; // Tidak ada tenggat waktu
     }
+    return `${todo.category}_${todo.text}_${this.formatDate(todo.deadline)}`;
+},
 
+    formatDate(deadline) {
     const today = new Date();
     const todoDeadline = new Date(deadline);
 
@@ -144,61 +157,22 @@ saveTodosToLocalStorage() {
     }
   },
     // Metode untuk menghapus tugas
-    deleteTodo(id) {
-      const index = this.todos.findIndex(todo => todo.id === id);
-      if (index !== -1) {
-        this.todos.splice(index, 1);
-        this.saveTodosToLocalStorage(); // Simpan tugas setelah menghapus
-      }
+    async deleteTodo(id) {
+      await todoService.deleteTask(id);
+      await this.loadTodos();
     },
 
     // Metode untuk mengubah status tugas (completed atau tidak)
-    toggleTodoStatus(id) {
-      const todo = this.todos.find(todo => todo.id === id);
-      if (todo) {
-        todo.completed = !todo.completed;
-        this.saveTodosToLocalStorage(); // Simpan perubahan status ke local storage
-      }
-    },
+    async toggleTodoStatus(id) {
+      await todoService.updateTask(id, { completed: !this.todos.find(todo => todo.id === id).completed });
+      await this.loadTodos(); 
+},
 
-    // Metode untuk menampilkan modal edit tugas
-    editTodo(id) {
-      this.showEditModal = true;
-      this.editedTodoId = id;
-      const todo = this.todos.find(todo => todo.id === id);
-      if (todo) {
-        this.editedTodoText = todo.text;
-      }
-    },
 
-    // Metode untuk menyimpan perubahan pada tugas yang diedit
-    saveEditedTodo() {
-      const todo = this.todos.find(todo => todo.id === this.editedTodoId);
-      if (todo) {
-        todo.text = this.editedTodoText;
-        this.showEditModal = false;
-        this.saveTodosToLocalStorage(); // Simpan perubahan tugas ke local storage
-      }
+    created() {
+      this.loadTodos();
+      this.loadCategories();
     },
-
-    // Metode untuk membatalkan edit tugas
-    cancelEdit() {
-      this.showEditModal = false;
-      this.editedTodoId = null;
-      this.editedTodoText = "";
-    },
-
-    // Metode untuk mengatur kategori tugas
-    setCategory(category) {
-      this.category = category;
-    },
-
-    goToAboutPage() {
-      this.$router.push('/about/');
-    },
-  },
-  created() {
-    this.loadTodosFromLocalStorage(); // Memuat tugas dari local storage saat aplikasi dimuat
   },
 };
 </script>
@@ -222,6 +196,14 @@ saveTodosToLocalStorage() {
   width: 100%;
 }
 
+.category-select {
+  padding: 8px;
+  margin-bottom: 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  width: 100%;
+  color: #a5a5a5;
+}
 .deadline-input {
   padding: 8px;
   margin-bottom: 10px;
