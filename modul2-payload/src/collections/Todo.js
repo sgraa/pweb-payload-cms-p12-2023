@@ -66,7 +66,8 @@ const Todo = {
         {
             name: "Category", 
             type: "relationship",
-            relationTo: "Category", 
+            relationTo: "Category",
+            label: "Jenis Tugas",
             hasMany: false, 
           },
         {

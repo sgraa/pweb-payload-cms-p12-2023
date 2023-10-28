@@ -59,13 +59,6 @@ const Category = {
             required: true,
             label: "User Email",
         },
-        {
-            name: "todos",
-            type: "relationship",
-            relationTo: "Todo",
-            hasMany: true,
-            label: "To-Do Items",
-        },
     ]
 }
 
